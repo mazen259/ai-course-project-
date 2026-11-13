@@ -4,16 +4,15 @@ import streamlit as st
 from bfs import bfs
 
 graph = {
-    "A": ["B", "C"], "B": [], "C": ["B", "E", "F"],
-    "D": ["B", "E", "G"], "E": ["G"], "F": ["D", "H"],
-    "G": ["H"], "H": [],
+    "A": ["B", "C"], "B": ["D", "E"], "C": ["F", "G"],
+    "D": [], "E": [], "F": [], "G": [],
 }
 
 st.set_page_config(page_title="BFS", page_icon="🔎", layout="wide")
 st.title("BFS — Breadth-First Search")
 st.write("بحث مستوى بمستوى باستخدام Queue: أول حالة تدخل هي أول حالة تخرج.")
 start = st.sidebar.selectbox("البداية", list(graph), index=0)
-goal = st.sidebar.selectbox("الهدف", list(graph), index=7)
+goal = st.sidebar.selectbox("الهدف", list(graph), index=6)
 delay = st.sidebar.slider("مدة الخطوة بالثواني", 0.2, 1.5, 0.7)
 path, steps = bfs(graph, start, goal)
 
@@ -36,9 +35,9 @@ screen = st.empty()
 def show_step(step):
     """Draw one recorded step. This function does not perform the search."""
     solved = step["current"] == goal
-    dot = 'digraph G { rankdir=LR; node [style=filled];'
+    dot = 'digraph G { rankdir=TB; ordering=out; node [shape=circle, style=filled]; edge [arrowhead=none, color=gray];'
     for node in graph:
-        color = "white"
+        color = "#0f766e" if node != goal else "#111827"
         if node in step["order"]:
             color = "lightgray"
         if node in step["queue"]:
@@ -47,7 +46,9 @@ def show_step(step):
             color = "gold"
         if solved and node in step["path"]:
             color = "lightgreen"
-        dot += f'{node} [fillcolor="{color}"];'
+        font = "white" if color.startswith("#") else "black"
+        number = step["order"].index(node) + 1 if node in step["order"] else ""
+        dot += f'{node} [fillcolor="{color}", fontcolor="{font}", xlabel="{number}"];'
     for node, neighbors in graph.items():
         for neighbor in neighbors:
             dot += f'{node} -> {neighbor};'
@@ -74,6 +75,8 @@ else:
     show_step(steps[frame - 1])
 
 st.subheader("Time & Space")
-st.write("BFS على الجراف: Time = O(V + E)، وSpace = O(V) بدون سجل الأنيميشن.")
-st.caption("V عدد الحالات، وE عدد الوصلات. حفظ لقطات العرض والمسارات قد يحتاج O(V²) وقتًا وذاكرة إضافيين.")
+st.code("Time Complexity:  O(b^d)\nSpace Complexity: O(b^d)")
+st.write("حسب تحليل شجرة البحث في السكشن: b هو عدد الفروع، وd هو عمق أقرب هدف.")
+st.caption("في المثال: b = 2 وd = 2. الجيران من اليسار إلى اليمين. هذه حدود نظرية وليست عدد الحالات التي تمت زيارتها.")
+st.caption("الحدود تخص البحث في شجرة الحالات؛ حفظ لقطات الأنيميشن والمسارات يضيف تكلفة عرض مستقلة.")
 st.info("BFS تضمن أقل عدد وصلات. مع تكلفة 1 لكل وصلة، يكون الحل أقل تكلفة أيضًا.")
